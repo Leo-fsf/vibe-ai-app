@@ -1,26 +1,6 @@
 {
-  "version": 2,
-  "name": "vibe-pro",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_SITE_URL": "https://vibe-pro.vercel.app"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SITE_URL": "https://vibe-pro.vercel.app"
-    }
-  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
   "functions": {
     "app/api/**/*.ts": {
       "memory": 1024,
