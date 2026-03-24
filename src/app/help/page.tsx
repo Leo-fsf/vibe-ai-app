@@ -1,12 +1,13 @@
-'use client'
-
 import { useState } from 'react'
-import { Search, ChevronRight, Book, Code, HelpCircle, MessageCircle, ExternalLink, FileText } from 'lucide-react'
+import { Search, ChevronRight, Book, Code, HelpCircle, MessageCircle, ExternalLink, FileText, Star } from 'lucide-react'
+import { readJsonFile, filterByCategory, searchJsonData } from '@/lib/data'
 
-export default function Help() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('getting-started')
+export const revalidate = 3600 // 1小时缓存
 
+export default async function Help({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
+  // 获取帮助文档数据
+  const helpDocs = await readJsonFile('help-docs.json')
+  // 获取分类数据
   const categories = [
     { id: 'getting-started', name: '快速开始', icon: Book },
     { id: 'tutorial', name: '教程', icon: Code },
@@ -15,283 +16,211 @@ export default function Help() {
     { id: 'community', name: '社区支持', icon: MessageCircle },
   ]
 
-  const sections = [
-    {
-      id: 'getting-started',
-      title: '快速开始',
-      description: '5 分钟上手 Vibe AI',
-      items: [
-        {
-          id: 1,
-          title: '如何注册账号',
-          description: '学习如何注册 Vibe AI 账号并完成认证',
-          readTime: '3 分钟',
-          popular: true,
-        },
-        {
-          id: 2,
-          title: '创建第一个智能体',
-          description: '手把手教你创建你的第一个 AI 智能体',
-          readTime: '5 分钟',
-          popular: true,
-        },
-        {
-          id: 3,
-          title: '使用代码生成功能',
-          description: '用自然语言生成完整的代码项目',
-          readTime: '8 分钟',
-        },
-        {
-          id: 4,
-          title: '一键部署到 GitHub',
-          description: '将你的项目部署到 GitHub Pages',
-          readTime: '6 分钟',
-        },
-      ],
-    },
-    {
-      id: 'tutorial',
-      title: '教程',
-      description: '深入学习各种功能',
-      items: [
-        {
-          id: 5,
-          title: '智能体系统详解',
-          description: '了解智能体的工作原理和最佳实践',
-          readTime: '15 分钟',
-          popular: true,
-        },
-        {
-          id: 6,
-          title: '可视化构建器指南',
-          description: '掌握拖拽式组件开发',
-          readTime: '12 分钟',
-        },
-        {
-          id: 7,
-          title: '团队协作功能使用',
-          description: '如何与团队成员协作开发',
-          readTime: '10 分钟',
-        },
-        {
-          id: 8,
-          title: '高级配置和自定义',
-          description: '自定义你的工作流程和设置',
-          readTime: '20 分钟',
-        },
-      ],
-    },
-    {
-      id: 'faq',
-      title: '常见问题',
-      description: '快速找到答案',
-      items: [
-        {
-          id: 9,
-          title: 'Vibe AI 是免费的吗？',
-          description: '了解 Vibe AI 的定价和免费额度',
-          readTime: '2 分钟',
-          popular: true,
-        },
-        {
-          id: 10,
-          title: '如何升级到企业版？',
-          description: '企业版功能介绍和升级流程',
-          readTime: '3 分钟',
-        },
-        {
-          id: 11,
-          title: '数据安全如何保障？',
-          description: '我们的安全和隐私保护措施',
-          readTime: '4 分钟',
-        },
-        {
-          id: 12,
-          title: '支持哪些编程语言和框架？',
-          description: '查看完整的技术栈支持列表',
-          readTime: '5 分钟',
-        },
-      ],
-    },
-    {
-      id: 'api',
-      title: 'API 文档',
-      description: '开发者参考资料',
-      items: [
-        {
-          id: 13,
-          title: 'API 概览',
-          description: 'API 基础介绍和使用方法',
-          readTime: '8 分钟',
-        },
-        {
-          id: 14,
-          title: '智能体 API',
-          description: '智能体相关的 API 接口文档',
-          readTime: '15 分钟',
-        },
-        {
-          id: 15,
-          title: '代码生成 API',
-          description: '代码生成功能的 API 调用',
-          readTime: '12 分钟',
-        },
-        {
-          id: 16,
-          title: '部署 API',
-          description: '部署相关的 API 接口',
-          readTime: '10 分钟',
-        },
-      ],
-    },
-    {
-      id: 'community',
-      title: '社区支持',
-      description: '获取帮助和交流',
-      items: [
-        {
-          id: 17,
-          title: '加入 Discord 社区',
-          description: '与其他用户交流经验和获取帮助',
-          readTime: '2 分钟',
-          popular: true,
-        },
-        {
-          id: 18,
-          title: '提交问题和反馈',
-          description: '如何提交 Bug 和功能建议',
-          readTime: '3 分钟',
-        },
-        {
-          id: 19,
-          title: '参与开源贡献',
-          description: '如何为 Vibe AI 项目贡献代码',
-          readTime: '10 分钟',
-        },
-        {
-          id: 20,
-          title: '联系支持团队',
-          description: '获取官方技术支持',
-          readTime: '2 分钟',
-        },
-      ],
-    },
-  ]
+  // 获取搜索参数
+  const searchQuery = searchParams.q || ''
+  const activeCategory = searchParams.category || 'getting-started'
 
-  const activeSection = sections.find(s => s.id === activeCategory) || sections[0]
-  const CategoryIcon = categories.find(c => c.id === activeCategory)?.icon || Book
+  // 过滤文档
+  let filteredDocs = helpDocs
+  if (activeCategory && activeCategory !== 'all') {
+    filteredDocs = filterByCategory(filteredDocs, activeCategory)
+  }
+  if (searchQuery) {
+    filteredDocs = searchJsonData(filteredDocs, searchQuery)
+  }
 
-  const filteredItems = activeSection.items.filter(item =>
-    searchQuery === '' ||
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // 按分类分组
+  const docsByCategory: { [key: string]: typeof helpDocs } = categories.reduce((acc, category) => {
+    acc[category.id] = helpDocs.filter(doc => doc.category === category.id).sort((a, b) => a.order - b.order)
+    return acc
+  }, {} as { [key: string]: typeof helpDocs })
+
+  // 获取热门文档
+  const popularDocs = helpDocs.filter(doc => doc.popular).slice(0, 4)
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      {/* 页面标题 */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">帮助文档</h1>
-        <p className="text-gray-600">
-          快速找到答案，学习如何使用 Vibe AI
-        </p>
-      </div>
+    <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 transition-colors duration-200">
+      {/* 头部 */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+              帮助中心
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+              查找教程、常见问题解答和API文档，帮助你快速上手Vibe AI平台
+            </p>
 
-      {/* 搜索框 */}
-      <div className="mb-8">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="搜索文档..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1677FF]"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-6">
-        {/* 左侧分类 */}
-        <div className="w-64 flex-shrink-0">
-          <div className="space-y-2">
-            {categories.map(category => {
-              const Icon = category.icon
-              const isActive = activeCategory === category.id
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive ? 'bg-[#1677FF] text-white' : 'bg-white hover:bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
-                  <span className="font-medium">{category.name}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* 右侧内容 */}
-        <div className="flex-1">
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <CategoryIcon className="w-6 h-6 text-[#1677FF]" />
-              <h2 className="text-xl font-semibold text-gray-900">
-                {activeSection.title}
-              </h2>
+            {/* 搜索框 */}
+            <div className="max-w-2xl mx-auto relative">
+              <input
+                type="text"
+                name="q"
+                placeholder="搜索帮助文档..."
+                defaultValue={searchQuery}
+                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
             </div>
-            <p className="text-gray-600">
-              {activeSection.description}
-            </p>
           </div>
+        </div>
+      </div>
 
-          {/* 文档列表 */}
-          <div className="space-y-4">
-            {filteredItems.map(item => (
-              <div
-                key={item.id}
-                className="card cursor-pointer hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {item.title}
-                      </h3>
-                      {item.popular && (
-                        <span className="px-2 py-0.5 bg-orange-100 text-orange-600 rounded text-xs font-medium">
-                          热门
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>{item.readTime} 阅读</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </div>
+      {/* 热门文档 */}
+      {popularDocs.length > 0 && !searchQuery && (
+        <div className="bg-white dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+              <Star className="h-5 w-5 text-yellow-500 mr-2" />
+              热门文档
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {popularDocs.map((doc) => (
+                <a
+                  key={doc.id}
+                  href="#"
+                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all"
+                >
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
+                    {doc.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                    {doc.description}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                      热门
+                    </span>
+                    <span className="flex items-center">
+                      <span className="mr-1">阅读时间</span>
+                      {doc.readTime}
+                    </span>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                </div>
-              </div>
-            ))}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 主内容区 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* 左侧分类导航 */}
+          <div className="lg:w-64 shrink-0">
+            <div className="sticky top-24">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                文档分类
+              </h3>
+              <nav className="space-y-1">
+                {categories.map((category) => {
+                  const Icon = category.icon
+                  return (
+                    <button
+                      key={category.id}
+                      name="category"
+                      value={category.id}
+                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        activeCategory === category.id
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 mr-3" />
+                      {category.name}
+                      <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                        {docsByCategory[category.id]?.length || 0}
+                      </span>
+                    </button>
+                  )
+                })}
+              </nav>
+            </div>
           </div>
 
-          {/* 联系支持 */}
-          <div className="mt-8 bg-gradient-to-r from-[#1677FF]/5 to-[#1677FF]/10 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              没有找到答案？
-            </h3>
-            <p className="text-gray-600 mb-4">
-              如果你在文档中没有找到答案，可以联系我们的支持团队
-            </p>
-            <button className="bg-[#1677FF] text-white px-6 py-2 rounded-lg hover:bg-[#5566FF] transition-colors">
-              联系支持
-            </button>
+          {/* 右侧文档列表 */}
+          <div className="flex-1">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {categories.find(c => c.id === activeCategory)?.name || '搜索结果'}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300">
+                {searchQuery ? `找到 ${filteredDocs.length} 个匹配结果` : `共 ${filteredDocs.length} 篇文档`}
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {filteredDocs.length > 0 ? (
+                filteredDocs.map((doc) => (
+                  <a
+                    key={doc.id}
+                    href="#"
+                    className="block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition-all"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            {doc.title}
+                          </h3>
+                          {doc.popular && (
+                            <span className="px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-xs">
+                              热门
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                          {doc.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                          <span>阅读时间 {doc.readTime}</span>
+                          <span>更新于 {new Date(doc.updatedAt).toLocaleDateString('zh-CN')}</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-gray-400 mt-1 group-hover:text-blue-500 transition-colors" />
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <Search className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    没有找到相关文档
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    请尝试使用其他关键词搜索，或查看全部文档
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 底部联系区域 */}
+      <div className="bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            还有其他问题？
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            如果在文档中没有找到你需要的答案，可以联系我们的支持团队
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/contact"
+              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all"
+            >
+              联系支持团队
+            </a>
+            <a
+              href="https://discord.gg/vibeai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-lg transition-all"
+            >
+              加入 Discord 社区 <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
           </div>
         </div>
       </div>
