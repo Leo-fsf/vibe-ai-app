@@ -1,0 +1,86 @@
+[
+  {
+    "id": "1",
+    "name": "writing",
+    "displayName": "文本创作",
+    "type": "agent",
+    "count": 38
+  },
+  {
+    "id": "2",
+    "name": "life",
+    "displayName": "便利生活",
+    "type": "agent",
+    "count": 42
+  },
+  {
+    "id": "3",
+    "name": "design",
+    "displayName": "设计素材",
+    "type": "agent",
+    "count": 18
+  },
+  {
+    "id": "4",
+    "name": "dev",
+    "displayName": "开发工具",
+    "type": "agent",
+    "count": 31
+  },
+  {
+    "id": "5",
+    "name": "ai",
+    "displayName": "AI 工具",
+    "type": "agent",
+    "count": 35
+  },
+  {
+    "id": "6",
+    "name": "tutorial",
+    "displayName": "教程",
+    "type": "blog",
+    "count": 4
+  },
+  {
+    "id": "7",
+    "name": "update",
+    "displayName": "更新日志",
+    "type": "blog",
+    "count": 2
+  },
+  {
+    "id": "8",
+    "name": "tips",
+    "displayName": "技巧",
+    "type": "blog",
+    "count": 1
+  },
+  {
+    "id": "9",
+    "name": "news",
+    "displayName": "新闻",
+    "type": "blog",
+    "count": 1
+  },
+  {
+    "id": "10",
+    "name": "getting-started",
+    "displayName": "快速开始",
+    "type": "help",
+    "count": 4
+  },
+  {
+    "id": "11",
+    "name": "faq",
+    "displayName": "常见问题",
+    "type": "help",
+    "count": 4
+  },
+  {
+    "id": "12",
+    "name": "api",
+    "displayName": "API 文档",
+    "type": "help",
+    "count": 4
+  }
+]
